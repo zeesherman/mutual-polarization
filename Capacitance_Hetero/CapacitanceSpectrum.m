@@ -46,6 +46,7 @@ for j = 1:N_frames
 
         % Construct initial guess
         beta = (eps_p(:,i)-1)./(eps_p(:,i)+2);
+        beta(isinf(eps_p(:,i))) = 1;
         p_guess = [zeros(N,2), 4*pi*beta./(1-beta*eta)];
         
         % Compute the capacitance
