@@ -1,4 +1,4 @@
-function E = FieldMap(x_E, x_p, p, box, xi)
+function E = FieldMap(x_E, x_p, p, box, xi, varargin)
 
 % Compute the field at specific points.
 %
@@ -8,6 +8,7 @@ function E = FieldMap(x_E, x_p, p, box, xi)
 % p = (N_p-by-3) particle dipoles
 % box = (1-by-3) simulation box
 % xi = (scalar) Ewald splitting parameter
+% vargin = p_1, p_2 = (N_nb-by-1) neighbor list pairs
 %
 % OUTPUTS
 % E = (N_E-by-3) field at each x_E
@@ -39,11 +40,16 @@ if any(rc > box/2)
     error('Real space cutoff (rc = %.3f) larger than half the box size (%.3f, %.3f, %.3f). Accuracy to specified error tolerance not guaranteed.',rc,box(1),box(2),box(3))
 end
 
-% Compute the neighbor list.
-[cell,Ncell] = CellList([x_p;x_E],box,rc); % cell list for both particle and probe positions
-type = [ones(N_p,1);2*ones(N_E,1)];
-[p1,p2] = NeighborList_Types(cell,Ncell,type,[2,1]); % neighbor list with only probe/particle pairs
-p1 = p1 - N_p; % p1 = 1 now corresponds to x_E(1,:)
+% Compute the neighbor list if not provided.
+if ~isempty(varargin)
+    p1 = varargin{1};
+    p2 = varargin{2};
+else
+    [cell,Ncell] = CellList([x_p;x_E],box,rc); % cell list for both particle and probe positions
+    type = [ones(N_p,1);2*ones(N_E,1)];
+    [p1,p2] = NeighborList_Types(cell,Ncell,type,[2,1]); % neighbor list with only probe/particle pairs
+    p1 = p1 - N_p; % p1 = 1 now corresponds to x_E(1,:)
+end
 
 % Compute the field
 E = -MagneticField(x_E,x_p,p,box,p1,p2,Ngrid,h,P,xi,eta,rc,offset,offsetxyz,field_dip_1,field_dip_2,r_table);
